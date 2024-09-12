@@ -32,7 +32,7 @@ def setup(self):
     """
     model_id = 1
     device = torch.device("cpu")
-    model_path = f"../../data/model/model_sm1.pt"
+    model_path = f"model/model_sm1.pt"
     self.model = AlphaZeroNet("MyModel", device, planes=64)
     self.model.load_state_dict(torch.load(model_path))
     self.model.eval()
@@ -154,7 +154,8 @@ def state_to_features(state: dict) -> np.array:
     padded_encoded_state[1:] = np.pad(combined_encoded_state[1:],
                                       pad_width=((0, 0), (padding_size, padding_size), (padding_size, padding_size)),
                                       mode='constant', constant_values=0)
-
+    padded_encoded_state[2] = np.ones_like(padded_encoded_state[2]) if state["self"][2] else np.zeros_like(
+        padded_encoded_state[2])
 
     # Step 5: Extract the framed view around the player
     player_row, player_col = [coord + padding_size for coord in state["self"][3]]
