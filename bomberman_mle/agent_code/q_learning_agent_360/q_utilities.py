@@ -48,10 +48,6 @@ ID_TO_NEIGHBOURS_STATE = {val:key for key, val in NEIGHBOURS_STATE_TO_ID.items()
 
 ACTION_ROTATION_BACKWARD = {'UP': 'LEFT', 'LEFT': 'DOWN', 'DOWN': 'RIGHT', 'RIGHT': 'UP'}
 
-BASE_NEIGHBOUR = len(NEIGHBOURS_STATE_TO_ID)  # 24 possible values for each neighbour tile
-BASE_CURRENT = 6  # 6 possible values for the current tile
-BASE_GAME_MODE = 3  # 3 possible values for the game mode
-
 
 def get_actual_move_before_rotation(feature_vector, action):
     if action in ['BOMB', 'WAIT']:
@@ -324,33 +320,18 @@ def get_bomb_effect(state, others_pos):
             bomb_map[dang_x, dang_y] = 1
     return bomb_effect, bomb_map
 
-
-def does_leaving_bomb_kill_enemy(state, extended_dangerous_fields, others_pos, bombs_pos):
-    self_x, self_y = state["self"][3]
-    others_in_range = [(enemy_x, enemy_y) for (enemy_x, enemy_y) in others_pos if (self_x == enemy_x and abs(self_y - enemy_y)) or  (self_y == enemy_y) and abs(self_x - enemy_x)]
-    if others_in_range:
-        for other_pos in others_in_range:
-            others_pos_except_one_in_loop = [j for j in others_pos if j!=other_pos]
-            if can_escape(state, other_pos, extended_dangerous_fields[:-1], others_pos_except_one_in_loop, bombs_pos, step_taken=False) \
-                    and not can_escape(state, other_pos, extended_dangerous_fields, others_pos_except_one_in_loop, bombs_pos+[(self_x, self_y)], step_taken=False):
-                return True
-    return False
-
 def get_encoded_state_on_current_tile(state, dangerous_fields, others_pos, bombs_pos):
     _, _, can_bomb, (self_x, self_y) = state["self"]
     s = None
     bomb_effect, bomb_map = get_bomb_effect(state, others_pos) if can_bomb else (0, None)
     extended_dangerous_fields = np.concatenate((dangerous_fields, bomb_map.reshape((1,17,17))), axis=0) if bomb_effect else dangerous_fields
     if can_escape(state, (self_x, self_y), extended_dangerous_fields, others_pos, bombs_pos):
-        if does_leaving_bomb_kill_enemy(state, extended_dangerous_fields, others_pos, bombs_pos):
-            s = 5
-        elif 0 < bomb_effect < 3:
+        if 0 < bomb_effect < 3:
             s = 1
         elif 3 <= bomb_effect <= 5:
             s = 2
         elif 5 < bomb_effect:
             s = 3
-
     elif not can_escape(state, (self_x, self_y), dangerous_fields, others_pos, bombs_pos):
         s = 4
     if s is None:
@@ -367,7 +348,7 @@ def feature_vector_to_id(feature_vector, return_num_rotations = True):
 
     # Define the bases for each set of values
     # base_neighbour = 3  # 3 possible values for each neighbour tile
-    base_current = 6  # 5 possible values for the current tile
+    base_current = 5  # 5 possible values for the current tile
     base_game_mode = 3  # 3 possible values for the game mode
     # base_closeness_state = 5
 
@@ -380,14 +361,10 @@ def feature_vector_to_id(feature_vector, return_num_rotations = True):
                 current_tile * base_game_mode +  # Move by the base of the game mode
                 game_mode)
 
-    assert(state_id in range(432))
+    assert(state_id in range(360))
     if return_num_rotations:
         return state_id, rot_cnt
     return state_id
-
-def get_state_space_size():
-    return BASE_NEIGHBOUR * BASE_CURRENT * BASE_GAME_MODE
-
 
 def state_to_feature_vector(state):
     others_pos = [other[3] for other in state["others"]]

@@ -1,7 +1,7 @@
 import os
 import pickle
 import random
-from q_learning_train import *
+from .q_utilities import *
 
 import numpy as np
 

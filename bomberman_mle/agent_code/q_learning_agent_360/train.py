@@ -9,7 +9,7 @@ import events as e
 from .callbacks import state_to_features, rotate_back_q_table
 import numpy as np
 
-from q_learning_train import state_to_id
+from .q_utilities import state_to_id
 # This is only an example!
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))

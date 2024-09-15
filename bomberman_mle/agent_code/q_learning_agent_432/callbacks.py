@@ -1,7 +1,7 @@
 import os
 import pickle
 import random
-from agent_code.q_learning_agent1.q_utilities import *
+from .q_utilities import *
 
 import numpy as np
 
